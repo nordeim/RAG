@@ -1,0 +1,29 @@
+*1. Key Enhancements*
+
+ ** Multiple File Uploads: Users can now upload multiple files, which are processed and stored in a vector database as a unified knowledge base.
+ ** Support for Multiple Document Types: The application uses the convert_doc_for_llm_sample_python.txt script to preprocess various document types (e.g., DOCX, PPTX, EPUB) into temporary text files before embedding them into the vector database.
+ ** Export Processed Data: A function exports the processed data from the vector database into a text file for external use.
+ ** System Prompt Configuration: Added an API configuration setting to include a "System" prompt for the LLM.
+
+*2. Explanation of Enhancements*
+
+  2.1 Multiple File Uploads
+     The process_documents() function processes multiple files and stores their chunks in the vector database.
+     Original files are saved in the RAG_source folder.
+
+  2.2 Support for Multiple Document Types
+     The convert_to_text() function preprocesses various document types into temporary text files using the logic from convert_doc_for_llm_sample_python.txt.
+
+  2.3 Export Processed Data
+     The export_processed_data() function exports the processed chunks from the vector database into a text file.
+
+  2.4 System Prompt Configuration
+     The rag_chain() function includes an optional system_prompt parameter to configure the LLM's behavior.
+
+*3. Future Enhancements*
+
+  3.1 Add support for more file types (e.g., XLSX, EPUB).
+
+  3.2 Optimize the export format for compatibility with external APIs like OpenAI 3.
+
+  3.3 Improve error handling for unsupported file types.
