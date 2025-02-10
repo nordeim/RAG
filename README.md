@@ -10,7 +10,7 @@ $ python simple_RAG_v3.py
 
 ![image](https://github.com/user-attachments/assets/3de49bea-f387-477b-983a-2660dff8ca05)
 
-![image](https://github.com/user-attachments/assets/41651cf9-e30d-4265-8961-d72cd7a673a2)
+![image](https://github.com/user-attachments/assets/911b45a7-d8e3-460b-b131-ce61d55745d7)
 
 project details can be found in this link: https://bit.ly/4hpF3du — You may need to sign up (for free!) to DataLab
 
