@@ -1,0 +1,303 @@
+To build a simple RAG chatbot using Python, we need to install the following packages. Each package serves a specific purpose in our chatbot pipeline:
+
+* ollama: This package allows us to run large language models (LLMs) locally. It simplifies interactions with models like LLaMA and Mistral.
+* langchain: A framework for building applications powered by LLMs. It provides tools for chaining prompts, managing memory, and integrating models.
+* chromadb: A vector database used for storing and retrieving text embeddings. This is essential for making the chatbot context-aware.
+* gradio: A simple way to build web-based interfaces for machine learning models. We’ll use it to create a user-friendly chatbot interface.
+* langchain-community: A collection of integrations and utilities that extend langchain, making it easier to work with external tools and databases.
+* pymupdf: To work with PDF documents, we need to install pymupdf which makes it easy to handle PDF files.
+
+$ pip install ollama
+
+$ pip install langchain chromadb gradio 
+
+$ pip install -U langchain-community
+
+$ pip install pymupdf
+
+# Import necessary packages
+
+import ollama  # Enables interaction with local large language models (LLMs)
+
+import gradio as gr  # Provides an easy-to-use web interface for the chatbot
+
+
+# Document processing and retrieval  
+
+from langchain_community.document_loaders import PyMuPDFLoader  # Extracts text from PDF files for processing
+
+from langchain.text_splitter import RecursiveCharacterTextSplitter  # Splits text into smaller chunks for better embedding and retrieval
+
+from langchain.vectorstores import Chroma  # Handles storage and retrieval of vector embeddings using ChromaDB
+​
+
+# Embedding generation  
+
+from langchain_community.embeddings import OllamaEmbeddings  # Converts text into numerical vectors using Ollama's embedding model
+
+import re  # Provides tools for working with regular expressions, useful for text cleaning and pattern matching
+Call DeepSeek R1 1.5B via API
+
+In this snippet, we use ollama.chat() to generate a response from DeepSeek R1 1.5B (which is installed locally). Let’s break it down:
+
+Choosing the Model: We specify "deepseek-r1:1.5b" using the model argument.
+Passing User Messages: The messages parameter is a list of interactions, where each message contains:
+"role": "user" – Indicates that the message is from the user.
+"content": "Explain Newton's second law of motion" – The actual question asked.
+Extracting and Printing the Response: The model generates a structured response, where the content of the reply is stored in response["message"]["content"]. We print this output to display the answer.
+This approach allows us to interact with an LLM locally, making it a powerful way to answer queries without relying on external APIs.
+
+
+# Call the Ollama model to generate a response  
+
+response = ollama.chat(
+
+    model="deepseek-r1:1.5b",  # Specifies the DeepSeek R1 model (1.5B parameters)
+
+    messages=[
+
+        {"role": "user", "content": "Explain Newton's second law of motion"},  # User's input query
+
+    ],
+
+)
+
+​
+# Print the chatbot's response
+
+print(response["message"]["content"])  # Extracts and displays the generated response from the model
+
+Preprocess the PDF Document for RAG
+We will now create a function that pre-processes the PDF file for RAG. Below is a breakdown of its logic:
+
+Check if a PDF is provided: If no file is uploaded, the function returns None, preventing unnecessary processing.
+Extract text from the PDF: Uses PyMuPDFLoader to load and extract raw text from the document.
+Split the text into chunks: Since LLMs process smaller text fragments better, we use RecursiveCharacterTextSplitter. Each chunk contains 500 characters, with an overlap of 100 characters to maintain context.
+Generate embeddings for each chunk: Uses OllamaEmbeddings with the "deepseek-r1:1.5b" model to convert text into numerical vectors. These embeddings allow us to find meaning-based matches rather than exact keyword searches.
+Store embeddings in a vector database: We use ChromaDB to store and organize the generated embeddings efficiently. The data is persisted in "./chroma_db" to avoid recomputing embeddings every time.
+Create a retriever for searching the database: The retriever acts like a smart search engine, enabling the chatbot to fetch the most relevant text when answering questions.
+Return essential components
+text_splitter (for future text processing)
+vectorstore (holding the document embeddings)
+retriever (allowing AI-powered search over the document)
+What are embeddings?
+Embeddings are numerical representations of text that capture meaning. Instead of treating words as just sequences of letters, embeddings transform them into multi-dimensional vectors where similar words or sentences are placed closer together.
+
+image Source: 
+https://medium.com/towards-data-science/word-embeddings-intuition-behind-the-vector-representation-of-the-words-7e4eb2410bba
+
+Intuition: how do embeddings work?
+Imagine a map of words:
+
+Words with similar meanings (cat and dog) are closer together.
+Words with different meanings (cat and car) are farther apart.
+Sentences or paragraphs with similar context will have embeddings that are close to each other.
+This means when a user asks a question, the LLM doesn’t just look for exact words—it finds the most relevant text based on meaning, even if the wording is different.
+
+Why this matters?
+This function enables a chatbot to understand and retrieve information from PDFs efficiently. Instead of simple keyword searches, it finds contextually relevant information, making AI responses more accurate and useful.
+
+
+# Define the function that processes the PDF
+
+def process_pdf(pdf_bytes):
+    # If PDF files are empty, return None — This prevents errors from trying to process an empty input.
+
+    if pdf_bytes is None:
+
+        return None, None, None
+
+    # PyMuPDFLoader initializes the PDF file
+
+    loader = PyMuPDFLoader(pdf_bytes) 
+
+    # .load() method reads the content of the PDF and extracts its text
+
+    data = loader.load()
+
+    # RecursiveCharacterTextSplitter splits the PDF into chunks of 500 characters, keeping 100 characters overlap to keep context 
+
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=100)
+
+    # Splits the documents into chunks and stores them in chunks object
+
+    chunks = text_splitter.split_documents(data)
+
+    # Create embeddings using OllamaEmbeddings 
+
+    embeddings = OllamaEmbeddings(model="deepseek-r1:1.5b")
+
+    # Create a vector database which allows us to store the chunks and their embeddings
+
+    vectorstore=Chroma.from_documents(documents=chunks, embedding=embeddings, persist_directory="./chroma_db")  # Example directory
+
+    # This creates a retriever that enables searching through the vectorstore.
+
+    retriever = vectorstore.as_retriever()
+
+    """
+
+    The function returns 3 objects
+
+        text_splitter → (Used to split new text in the same way as before)
+
+        vectorstore → (Holds the processed document chunks)
+
+        retriever → (Used to fetch relevant document chunks when answering questions)
+
+    """
+
+    
+    return text_splitter, vectorstore, retriever
+
+Combining retrieved document chunks
+Once the embeddings are retrieved, next we need to stitch these together. The `combine_docs() function merges multiple retrieved document chunks into a single string. Why do we do this?
+
+Provides better context – LLMs understand structured, continuous text better than fragmented pieces.
+Improves response quality – Merging chunks helps LLMs generate more coherent and complete answers.
+Preserves document flow – Keeps information logically ordered, preventing disjointed responses.
+Optimizes token usage – Reduces redundant queries and ensures efficient use of the model’s context window.
+
+def combine_docs(docs):
+
+    return "\n\n".join(doc.page_content for doc in docs)
+
+Querying DeepSeek-R1 using Ollama
+Now, our input to the model is ready. Let’s set up DeepSeek R1 using Ollama.
+
+The ollama_llm() function takes a user’s question and relevant context, formats a structured prompt, sends it to the DeepSeek-R1 model, and returns a clean generated response.
+
+How it works (step-by-step)
+Formats the input – Structures the question and context for better input understanding.
+Calls deepseek-r1 – Sends the formatted prompt to generate a response.
+Extracts the response content – Retrieves the AI’s answer.
+Cleans unnecessary text – Removes <think>...</think> traces that contain model reasoning.
+Returns the cleaned response – Provides a polished and readable AI answer.
+
+def ollama_llm(question, context):
+
+
+    # Format the prompt with the question and context to provide structured input for the AI
+
+    formatted_prompt = f"Question: {question}\n\nContext: {context}"
+
+    # Send the structured prompt to the Ollama model for processing
+
+    response = ollama.chat(
+
+        model="deepseek-r1:1.5b",  # Specifies the AI model to use
+
+        messages=[{'role': 'user', 'content': formatted_prompt}]  # Formats the user input
+
+    )
+
+# Extract the AI-generated response content
+
+    response_content = response['message']['content']
+
+    # Remove content inside <think>...</think> tags to clean up AI reasoning traces
+
+    final_answer = re.sub(r'<think>.*?</think>', # We're searching for think tags
+
+                          '', # We'll replace them with empty spaces
+
+                          response_content, # In response_content
+
+                          flags=re.DOTALL).strip() # (dot) should match newlines (\n) as well.
+
+    # Return the final cleaned response
+
+    return final_answer
+
+Build a RAG pipeline
+Now we have all the required components, let’s build the RAG pipeline for our demo. We will build the rag_chain() function, which retrieves relevant document chunks, formats them, and generates a response with the additional context from the retrieval step.
+
+How it works
+Retrieves relevant document chunks: The retriever.invoke(question) searches for the most relevant text based on the user's question.Instead of relying solely on a language model’s memory, it fetches factual data from stored documents.
+Formats the retrieved content: combine_docs(retrieved_docs) merges the document chunks into a single structured text. This ensures that DeepSeek receives a well-organized input for better reasoning.
+Generates the response: Calls ollama_llm(question, formatted_content), which:
+Passes the structured input to deepseek-r1:1.5b for processing.
+Cleans up the response (removes <think> tags).
+Returns a polished, fact-based answer.
+
+# Define rag_chain function for Retrieval Augmented Generation
+
+def rag_chain(question, text_splitter, vectorstore, retriever):
+
+    """
+
+    This function takes as input:
+
+        - The question we want to ask the model
+
+        - The text_splitter object to split the PDF and read into chunks
+
+        - The vectorstore for retrieving embeddings 
+
+        - The retriever objects which retrieves data from the vectorstore
+
+    """
+
+    retrieved_docs = retriever.invoke(question) # In this step, we will find the part of the document most relevant to the question
+
+    formatted_content = combine_docs(retrieved_docs) # We will then combine the retrieved parts of the document 
+
+    return ollama_llm(question, formatted_content) # Run the model on the question, and the relevant context from the document 
+
+
+# Put it all together — Create a function that performs the logic expected by the Chatbot  
+
+def ask_question(pdf_bytes, question): 
+
+    text_splitter, vectorstore, retriever = process_pdf(pdf_bytes) # Process the PDF
+
+    if text_splitter is None:
+
+        return None  # No PDF uploaded    
+
+    result = rag_chain(question, text_splitter, vectorstore, retriever) # Return the results with RAG
+
+    return {result}
+
+Building a Chat Interface with Gradio
+
+# Define a Gradio interface
+
+interface = gr.Interface(
+
+    fn=ask_question,  # The function that processes user input and generates a response (logic of the app)
+
+    inputs=[
+
+        gr.File(label="Upload PDF (optional)"),  # Optional file upload input for a PDF document
+
+        gr.Textbox(label="Ask a question")  # Text input where the user types their question
+
+    ],
+
+    outputs="text",  # The function returns a text response
+
+    title="Ask questions about your PDF",  # The title displayed on the interface
+
+    description="Use DeepSeek-R1 1.5B to answer your questions about the uploaded PDF document.",  # Brief description of the interface's functionality
+
+)
+
+​
+# Launch the Gradio interface to start the web-based app
+
+interface.launch()
+
+How to uninstall Ollama and DeepSeek?
+To uninstall Ollama
+
+To uninstall Ollama
+
+macOS: Delete Ollama from applications
+Windows: Uninstall Ollama using control panel
+To uninstall DeepSeek
+
+Search for these folders on your computer — delete these folders.
+
+macOS: ~/.ollama/models
+Windows: C:\Users%username%.ollama\models
