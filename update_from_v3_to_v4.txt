@@ -1,0 +1,109 @@
+$ diff simple_RAG_v4.py simple_RAG_v3.py
+23,30d22
+< import pytesseract
+< from PIL import Image
+< import aspose.words as aw         # For DOCX conversion (note: license required for commercial use)
+< from pptx import Presentation       # For PPTX conversion
+< import pandas as pd                 # For XLSX conversion
+< from ebooklib import epub           # For EPUB conversion
+< from bs4 import BeautifulSoup        # For EPUB conversion
+<
+60,122d51
+< def convert_pptx_to_text(file_path: str) -> str:
+<     """Convert PPTX files to text."""
+<     text = []
+<     try:
+<         prs = Presentation(file_path)
+<         for i, slide in enumerate(prs.slides, 1):
+<             text.append(f"[SLIDE {i}]")
+<             for shape in slide.shapes:
+<                 if hasattr(shape, "text"):
+<                     text.append(shape.text)
+<     except Exception as e:
+<         return f"Error converting PPTX: {e}"
+<     return "\n".join(text)
+<
+< def convert_docx_to_text(file_path: str) -> str:
+<     """Convert DOCX files to text using Aspose.Words."""
+<     try:
+<         doc = aw.Document(file_path)
+<         return doc.get_text()
+<     except Exception as e:
+<         return f"Error converting DOCX: {e}"
+<
+< def convert_xlsx_to_text(file_path: str) -> str:
+<     """Convert Excel files to text."""
+<     try:
+<         dfs = pd.read_excel(file_path, sheet_name=None)
+<         text = []
+<         for sheet, df in dfs.items():
+<             text.append(f"[SHEET: {sheet}]")
+<             text.append(df.to_string(index=False))
+<         return "\n\n".join(text)
+<     except Exception as e:
+<         return f"Error converting XLSX: {e}"
+<
+< def convert_epub_to_text(file_path: str) -> str:
+<     """Convert EPUB files to text."""
+<     text = []
+<     try:
+<         book = epub.read_epub(file_path)
+<         for item in book.get_items():
+<             # Use 9 for document items (replacing epub.ITEM_DOCUMENT)
+<             if item.get_type() == 9:
+<                 soup = BeautifulSoup(item.get_content(), 'html.parser')
+<                 text.append(soup.get_text())
+<         return "\n\n".join(text)
+<     except Exception as e:
+<         return f"Error converting EPUB: {e}"
+<
+< def convert_image_to_text(file_path: str) -> str:
+<     """Extract text from images using OCR."""
+<     try:
+<         return pytesseract.image_to_string(Image.open(file_path))
+<     except Exception as e:
+<         return f"Error converting Image (OCR): {e}"
+<
+< def convert_text_file_to_text(file_path: str) -> str:
+<     """Directly read plain text files."""
+<     try:
+<         with open(file_path, 'r', encoding='utf-8') as f:
+<             return f.read()
+<     except Exception as e:
+<         return f"Error reading Text file: {e}"
+<
+126a56
+>         # Use PyMuPDF for PDF conversion
+131a62,64
+>             with open(output_file, 'w', encoding='utf-8') as f:
+>                 f.write(text)
+>             return text
+134,145c67,69
+<     elif file_type == "application/vnd.openxmlformats-officedocument.presentationml.presentation":
+<         text = convert_pptx_to_text(input_file)
+<     elif file_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+<         text = convert_docx_to_text(input_file)
+<     elif file_type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+<         text = convert_xlsx_to_text(input_file)
+<     elif file_type == "application/epub+zip":
+<         text = convert_epub_to_text(input_file)
+<     elif file_type and file_type.startswith("image/"):
+<         text = convert_image_to_text(input_file)
+<     elif file_type == "text/plain":
+<         text = convert_text_file_to_text(input_file)
+---
+>     elif file_type and (file_type.startswith("text/") or file_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"):
+>         # Add similar logic for other file types
+>         pass  # Placeholder for additional file type handling
+148,158d71
+<
+<     if isinstance(text, str) and text.startswith("Error"):
+<         print(text)
+<         return
+<
+<     try:
+<         with open(output_file, 'w', encoding='utf-8') as f:
+<             f.write(text)
+<         return text
+<     except Exception as e:
+<         return f"Error writing to output file: {e}"
