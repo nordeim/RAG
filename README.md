@@ -2,7 +2,7 @@
 
 How to set up DeepSeek R1 on your local machine to securely query PDF documents using retrieval-augmented generation (RAG), from downloading and configuring the model with Ollama to building a Gradio-based web app that processes PDF files using LangChain and vector databases. Whether you’re on a Mac or Windows, this video covers data preprocessing, text embedding, and semantic search, giving you a comprehensive understanding of local AI-assisted document queries without any reliance on the cloud.
 
-$ pip install langchain_community ollama gradio
+$ pip install langchain_community ollama gradio openai python-dotx python-pptx pytesseract
 
 $ python simple_RAG_v3.py
 
