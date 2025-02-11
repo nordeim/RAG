@@ -1,0 +1,76 @@
+*Key Improvements & Features To Add:*
+
+*1. Dual LLM Provider Support*
+
+   > New radio button selects between Ollama/OpenAI
+
+   > Dynamic UI shows API fields only for OpenAI
+
+   > Unified response generation handling both providers
+
+
+*2. Enhanced File Handling*
+
+   > Uses file copying instead of moving for temp files
+
+   > Added session state management for multiple queries
+
+   > File reprocessing prevention with processed_files set
+
+
+*3. Text Export System*
+
+  > Export checkbox triggers text file creation
+
+  > Exported files include original filenames as headers
+
+  > Stores in RAG_source folder with user-defined name
+
+
+*4. Improved UI Workflow*
+
+  > Separate processing and question submission
+
+  > Persistent session until Clear button clicked
+
+  > Better error handling and user feedback
+
+
+*%. Performance Optimizations*
+
+  > Processes files only once per session
+
+  > Reuses vector store between queries
+
+  > Async-friendly design for future scaling
+
+
+*Usage Instructions:*
+
+  1. Select LLM provider (Ollama for local, OpenAI for cloud)
+
+  2. Upload documents (multiple files supported)
+
+  3. Set API parameters if using OpenAI
+
+  4. Optional: Enable text export for future reuse
+
+  5. Ask multiple questions without re-uploading
+
+  6. Use Clear button to start new session
+
+
+*Testing To Perform:*
+
+  1. Verified both Ollama and OpenAI API endpoints
+
+  2. Tested all supported file formats (PDF, DOCX, etc.)
+
+  3. Confirmed text export functionality
+
+  4. Validated session persistence across queries
+
+  5. Tested error handling for invalid API keys/files
+
+*Conclusion:*
+New implementation maintains all original RAG functionality while adding the requested features in a user-friendly interface with proper error handling and state management.
