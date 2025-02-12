@@ -1,0 +1,171 @@
+$ diff simple_RAG-v7.py simple_RAG-v6.py
+27,28d26
+< import yaml                    # << new import for configuration handling
+< import requests                # << new import for Ollama API call
+43,62d40
+< # Attempt to load OpenAI config if present
+< openai_base_url = ""
+< openai_api_key = ""
+< openai_model = ""
+< default_system_prompt = "You are a helpful assistant."  # default fallback
+<
+< config_path = "api_configuration.yaml"
+< if os.path.exists(config_path):
+<     with open(config_path, "r", encoding="utf-8") as f:
+<         config = yaml.safe_load(f)
+<     openai_api_key = config.get("API_Key", "")
+<     openai_base_url = config.get("API_Url", "")
+<     openai_model = config.get("Model", "")
+<     # if System_Prompt is provided in the config, use it as default
+<     default_system_prompt = config.get("System_Prompt", default_system_prompt)
+<
+< # Default settings for Ollama
+< default_ollama_base_url = "http://127.0.0.1:11434"
+< default_ollama_model = "deepseek-r1:1.5b"  # fallback default (user will select from list)
+<
+212,218c190,193
+<     openai_base_url: str,
+<     openai_api_key: str,
+<     openai_model: str,
+<     ollama_base_url: str,
+<     ollama_model: str,
+<     temperature: float,
+<     max_tokens: int
+---
+>     base_url: str,
+>     api_key: str,
+>     model: str,
+>     temperature: float
+230,251c205,211
+<         # Use Ollama API call (based on sample_code_for_Ollama_API_call.py)
+<         endpoint = "/chat/completions"
+<         url = f"{ollama_base_url}{endpoint}"
+<         payload = {
+<             "model": ollama_model,
+<             "messages": [
+<                 {"role": "system", "content": system_prompt},
+<                 {"role": "user", "content": full_prompt}
+<             ],
+<             "temperature": temperature,
+<             "max_tokens": max_tokens
+<         }
+<         try:
+<             response = requests.post(url, json=payload)
+<             if response.status_code == 200:
+<                 result = response.json()
+<                 return result['choices'][0]['message']['content']
+<             else:
+<                 return f"Error: {response.status_code} {response.text}"
+<         except Exception as e:
+<             return f"API Error: {str(e)}"
+<     else:  # OpenAI call using OpenAI integration
+---
+>         response = ollama.chat(
+>             model=model,
+>             messages=[{'role': 'user', 'content': full_prompt}],
+>             options={'temperature': temperature}
+>         )
+>         return response['message']['content']
+>     else:  # OpenAI-compatible
+253c213
+<             client = OpenAI(base_url=openai_base_url, api_key=openai_api_key)
+---
+>             client = OpenAI(base_url=base_url, api_key=api_key)
+255c215
+<                 model=openai_model,
+---
+>                 model=model,
+260,261c220
+<                 temperature=temperature,
+<                 max_tokens=max_tokens
+---
+>                 temperature=temperature
+288,317c247,262
+<             # Group for OpenAI parameters
+<             with gr.Group(visible=False) as openai_group:
+<                 openai_base_url_input = gr.Textbox(
+<                     label="OpenAI API URL",
+<                     value=openai_base_url,
+<                     placeholder="https://api.openai.com/v1"
+<                 )
+<                 openai_api_key_input = gr.Textbox(
+<                     label="OpenAI API Key",
+<                     type="password",
+<                     value=openai_api_key,
+<                     placeholder="Enter OpenAI API key"
+<                 )
+<                 openai_model_input = gr.Textbox(
+<                     label="OpenAI Model",
+<                     value=openai_model,
+<                     placeholder="e.g., gpt-4, gpt-3.5-turbo"
+<                 )
+<             # Group for Ollama parameters
+<             with gr.Group(visible=True) as ollama_group:
+<                 ollama_base_url_input = gr.Textbox(
+<                     label="Ollama Base URL",
+<                     value=default_ollama_base_url,
+<                     placeholder="http://127.0.0.1:11434"
+<                 )
+<                 ollama_model_input = gr.Textbox(
+<                     label="Ollama Model",
+<                     value=default_ollama_model,
+<                     placeholder="Select Ollama model (use 'ollama list' to see options)"
+<                 )
+---
+>             base_url = gr.Textbox(
+>                 label="API URL",
+>                 value="http://localhost:11434/v1",
+>                 visible=False
+>             )
+>             api_key = gr.Textbox(
+>                 label="API Key",
+>                 type="password",
+>                 placeholder="Enter API key",
+>                 visible=False
+>             )
+>             model = gr.Textbox(
+>                 label="Model",
+>                 value="deepseek-r1:1.5b",
+>                 interactive=True
+>             )
+325,329d269
+<             max_tokens = gr.Number(
+<                 label="Max Tokens",
+<                 value=16384,
+<                 precision=0
+<             )
+340c280
+<             # Toggle API parameter groups based on provider selection.
+---
+>             # Dynamic visibility for OpenAI fields
+342c282,286
+<                 return gr.update(visible=(choice=="OpenAI")), gr.update(visible=(choice=="Ollama"))
+---
+>                 return [
+>                     gr.Textbox(visible=choice == "OpenAI"),
+>                     gr.Textbox(visible=choice == "OpenAI"),
+>                     gr.Textbox(value="deepseek-ai/deepseek-r1" if choice == "OpenAI" else "deepseek-r1:1.5b")
+>                 ]
+347c291
+<                 outputs=[openai_group, ollama_group]
+---
+>                 outputs=[base_url, api_key, model]
+350c294
+<                 lambda x: gr.update(visible=x),
+---
+>                 lambda x: gr.Textbox(visible=x),
+359d302
+<                 value=default_system_prompt,
+384,390c327,330
+<             openai_base_url_input,
+<             openai_api_key_input,
+<             openai_model_input,
+<             ollama_base_url_input,
+<             ollama_model_input,
+<             temperature,
+<             max_tokens
+---
+>             base_url,
+>             api_key,
+>             model,
+>             temperature
