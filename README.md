@@ -4,7 +4,7 @@ How to set up DeepSeek R1 on your local machine to securely query PDF documents 
 
 $ pip install langchain_community ollama gradio openai python-dotx python-pptx pytesseract
 
-$ python simple_RAG_v6.py
+$ python simple_RAG_v7.py
 
 ![image](https://github.com/user-attachments/assets/20a68e79-a853-4af2-983e-6af7148ef164)
 
@@ -15,3 +15,5 @@ $ python simple_RAG_v6.py
 project details can be found in this link: https://bit.ly/4hpF3du — You may need to sign up (for free!) to DataLab
 
 https://youtu.be/hOsZzcMYMLI
+
+https://www.perplexity.ai/search/think-of-yourself-as-a-great-s-312se3iLTAi9SVZNerBC.g
