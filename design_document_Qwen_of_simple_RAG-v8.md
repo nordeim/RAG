@@ -197,4 +197,4 @@ The `simple_RAG-v8.py` script provides a robust foundation for building a RAG sy
 
 ---
 
-**Word Count**: Approximately 2000 words.
+[**Analysis by Qwen**: read the report here.](https://chat.qwenlm.ai/s/aa7b8101-4ed9-4d88-ab3c-2f2ea10c4a4e)
