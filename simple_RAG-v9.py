@@ -88,7 +88,7 @@ logger = logging.getLogger("RAG_Assistant")
 
 # Application constants
 APP_NAME = "Enhanced RAG Assistant"
-APP_VERSION = "1.0.0"
+APP_VERSION = "0.9.0"
 DATA_DIR = "rag_data"
 RAG_SOURCE_FOLDER = os.path.join(DATA_DIR, "sources")
 VECTOR_DB_PATH = os.path.join(DATA_DIR, "vector_db")
