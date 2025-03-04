@@ -2,6 +2,13 @@
 
 ```bash
 pip install langchain langchain-community langchain-ollama ollama gradio openai python-dotx python-pptx pytesseract
+python simple_RAG-v11.py
+```
+
+![image](https://github.com/user-attachments/assets/c7550d07-ae0f-422d-a6ed-ee969b0a6be5)
+
+---
+```bash
 python simple_RAG-v9.py
 ```
 
