@@ -2,10 +2,12 @@
 
 ```bash
 pip install langchain langchain-community langchain-ollama ollama gradio openai python-dotx python-pptx pytesseract
-python simple_RAG-v11.py
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+pip install sentence-transformers rank-bm25
+python simple_RAG-v13.py
 ```
 
-![image](https://github.com/user-attachments/assets/c7550d07-ae0f-422d-a6ed-ee969b0a6be5)
+![image](https://github.com/user-attachments/assets/8c97c3fd-4a81-4f13-bddf-693029b3068c)
 
 ---
 ```bash
